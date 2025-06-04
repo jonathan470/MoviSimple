@@ -1,0 +1,166 @@
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f4f4f4;
+  margin: 0;
+  color: #333;
+}
+
+#app {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 500px;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+}
+
+h2,
+h3 {
+  text-align: center;
+  color: #333;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+button {
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+  margin-bottom: 10px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+#logoutButton,
+#resetTripButton {
+  background-color: #dc3545;
+}
+#logoutButton:hover,
+#resetTripButton:hover {
+  background-color: #c82333;
+}
+#resetTripButton {
+  background-color: #28a745;
+}
+#resetTripButton:hover {
+  background-color: #218838;
+}
+
+p {
+  text-align: center;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+#mapContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Ajustar para 6 nodos */
+  grid-gap: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  position: relative; /* Para posible dibujo de líneas */
+}
+
+.node {
+  width: 50px;
+  height: 50px;
+  background-color: #6c757d;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  margin: auto; /* Centrar nodos en celdas de la cuadrícula */
+}
+
+.node.selected-origin {
+  background-color: #28a745; /* Verde para origen */
+}
+
+.node.selected-destination {
+  background-color: #dc3545; /* Rojo para destino */
+}
+
+.node.path-node {
+  background-color: #ffc107; /* Amarillo para ruta */
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.controls label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+#tripInfo p {
+  margin: 5px 0;
+  text-align: left;
+  font-size: 1em;
+}
+
+#animationContainer {
+  margin-top: 15px;
+  display: none; /* Oculto inicialmente */
+}
+
+#progressBar {
+  width: 100%;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  padding: 3px;
+  margin-bottom: 10px;
+}
+
+#progressBarFill {
+  height: 20px;
+  width: 0%;
+  background-color: #007bff;
+  border-radius: 3px;
+  transition: width 0.5s ease-in-out;
+}
+
+#currentNodeDisplay {
+  text-align: center;
+  font-weight: bold;
+}
