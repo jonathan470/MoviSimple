@@ -316,5 +316,75 @@ document.addEventListener("DOMContentLoaded", () => {
 
     animatePath(path, totalTime); // CA7 (Ruta óptima se dibuja y anima) [cite: 10]
   });
-  
+  // --- Animación ---
+  function animatePath(path, totalTime) {
+    let currentPathIndex = 0;
+    let accumulatedTime = 0;
+    progressBarFill.style.width = "0%";
+    currentNodeDisplay.textContent = Iniciando en N${path[0]};
+
+    clearNodeSelectionsVisual();
+    const nodeElements = mapContainer.querySelectorAll(".node");
+
+    function highlightCurrentNode() {
+      // Parte de "dibujarla sobre el mapa" [cite: 10]
+      nodeElements.forEach((el) => el.classList.remove("path-node"));
+      const nodeToHighlight = path[currentPathIndex];
+      const elToHighlight = Array.from(nodeElements).find(
+        (el) => parseInt(el.dataset.nodeId) === nodeToHighlight
+      );
+      if (elToHighlight) {
+        elToHighlight.classList.add("path-node");
+      }
+    }
+
+    highlightCurrentNode();
+
+    function stepAnimation() {
+      // Barra de progreso que avance entre nodos, respetando el peso en segundos [cite: 10]
+      if (currentPathIndex < path.length - 1) {
+        const u = path[currentPathIndex];
+        const v = path[currentPathIndex + 1];
+
+        let edgeWeight = 0;
+        const edgeData = graph.adj[u].find((e) => e.node === v);
+        if (edgeData) {
+          edgeWeight = edgeData.weight;
+        } else {
+          console.error(Arista no encontrada entre ${u} y ${v});
+          finalizeAnimation();
+          return;
+        }
+
+        accumulatedTime += edgeWeight;
+        const progressPercentage = (accumulatedTime / totalTime) * 100;
+        progressBarFill.style.width = ${progressPercentage}%;
+        currentNodeDisplay.textContent = Viajando a N${v}... (Segmento: ${edgeWeight}s);
+
+        setTimeout(() => {
+          currentPathIndex++;
+          highlightCurrentNode();
+          if (currentPathIndex === path.length - 1) {
+            currentNodeDisplay.textContent = ¡Llegada a N${path[currentPathIndex]}!;
+            setTimeout(finalizeAnimation, 1000);
+          } else {
+            stepAnimation();
+          }
+        }, edgeWeight * 500); // Escalar tiempo para animación (ej. 500ms por segundo de peso)
+      }
+    }
+
+    if (path.length > 1) {
+      setTimeout(stepAnimation, 500);
+    } else {
+      currentNodeDisplay.textContent = En N${path[0]};
+      progressBarFill.style.width = "100%";
+      finalizeAnimation();
+    }
+  }
+
+  function finalizeAnimation() {
+    currentNodeDisplay.textContent = Viaje Completado! ${timeText.textContent};
+    // El reinicio de la interfaz se maneja con el botón "Nuevo Viaje" [cite: 12]
+  }
 });
