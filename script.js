@@ -149,3 +149,130 @@ document.addEventListener("DOMContentLoaded", () => {
     regEmailInput.value = "";
     regPasswordInput.value = "";
   });
+  loginButton.addEventListener("click", () => {
+    const email = loginEmailInput.value.trim();
+    const password = loginPasswordInput.value.trim(); // [cite: 5]
+
+    const user = users.find(
+      (u) => u.email === email && u.password === hashed_${password}
+    );
+    if (user) {
+      currentUser = user;
+      welcomeMessage.textContent = ¡Bienvenido, ${currentUser.name}!;
+      showScreen("trip");
+      setupTripScreen(); // CA2, CA3 (mapa se muestra)
+      loginEmailInput.value = "";
+      loginPasswordInput.value = "";
+    } else {
+      alert("Correo electrónico o contraseña no válidos.");
+    }
+  });
+
+  logoutButton.addEventListener("click", () => {
+    currentUser = null;
+    showScreen("login");
+    resetTripInterfaceFull();
+  });
+
+  // --- Configuración de Pantalla de Viaje ---
+  function setupTripScreen() {
+    mapContainer.innerHTML = "";
+    originSelect.innerHTML = "";
+    destinationSelect.innerHTML = "";
+
+    for (let i = 0; i < NUM_NODES; i++) {
+      // Nodos del mapa
+      const nodeEl = document.createElement("div");
+      nodeEl.classList.add("node");
+      nodeEl.textContent = N${i}; // Nodos numerados 0-5 [cite: 8]
+      nodeEl.dataset.nodeId = i;
+      nodeEl.addEventListener("click", () => handleNodeClick(i, nodeEl));
+      mapContainer.appendChild(nodeEl);
+
+      // Opciones de selección
+      const optionOrigin = document.createElement("option");
+      optionOrigin.value = i;
+      optionOrigin.textContent = Nodo ${i};
+      originSelect.appendChild(optionOrigin);
+
+      const optionDest = document.createElement("option");
+      optionDest.value = i;
+      optionDest.textContent = Nodo ${i};
+      destinationSelect.appendChild(optionDest);
+    }
+    if (NUM_NODES > 0) {
+      originSelect.value = "0";
+      handleNodeSelectionChange(0, "origin");
+      destinationSelect.value = NUM_NODES > 1 ? "1" : "0";
+      handleNodeSelectionChange(NUM_NODES > 1 ? 1 : 0, "destination");
+    }
+    resetTripInterface();
+  }
+
+  function handleNodeClick(nodeId, nodeEl) {
+    if (
+      selectedOriginNode === null ||
+      (selectedOriginNode !== null && selectedDestinationNode !== null)
+    ) {
+      clearNodeSelections();
+      selectedOriginNode = nodeId;
+      nodeEl.classList.add("selected-origin");
+      originSelect.value = nodeId;
+    } else if (
+      selectedDestinationNode === null &&
+      selectedOriginNode !== nodeId
+    ) {
+      selectedDestinationNode = nodeId;
+      nodeEl.classList.add("selected-destination");
+      destinationSelect.value = nodeId;
+    }
+    // CA4: Nodos cambian de color al seleccionarse [cite: 9]
+  }
+
+  function handleNodeSelectionChange(nodeId, type) {
+    nodeId = parseInt(nodeId);
+    clearNodeSelectionsVisual();
+
+    if (type === "origin") {
+      selectedOriginNode = nodeId;
+    } else {
+      selectedDestinationNode = nodeId;
+    }
+
+    const nodeElements = mapContainer.querySelectorAll(".node");
+    nodeElements.forEach((el) => {
+      const id = parseInt(el.dataset.nodeId);
+      if (id === selectedOriginNode) {
+        el.classList.add("selected-origin");
+      }
+      if (id === selectedDestinationNode) {
+        el.classList.add("selected-destination");
+      }
+    });
+    // CA4: Nodos cambian de color al seleccionarse [cite: 9]
+  }
+
+  originSelect.addEventListener("change", (e) =>
+    handleNodeSelectionChange(e.target.value, "origin")
+  );
+  destinationSelect.addEventListener("change", (e) =>
+    handleNodeSelectionChange(e.target.value, "destination")
+  );
+
+  function clearNodeSelectionsVisual() {
+    const nodeElements = mapContainer.querySelectorAll(".node");
+    nodeElements.forEach((el) => {
+      el.classList.remove(
+        "selected-origin",
+        "selected-destination",
+        "path-node"
+      );
+    });
+  }
+
+  function clearNodeSelections() {
+    clearNodeSelectionsVisual();
+    selectedOriginNode = null;
+    selectedDestinationNode = null;
+  }
+  });
