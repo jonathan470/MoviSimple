@@ -71,4 +71,81 @@ document.addEventListener("DOMContentLoaded", () => {
       this.adj[v].push({ node: u, weight: w }); // Conexión bidireccional [cite: 7]
     }
   }
-});
+    dijkstraSimple(source) {
+      const dist = Array(this.n).fill(Infinity);
+      const prev = Array(this.n).fill(null); // Para reconstruir predecesores [cite: 9]
+      const visited = Array(this.n).fill(false);
+
+      dist[source] = 0;
+
+      for (let count = 0; count < this.n; count++) {
+        let u = -1;
+        // Encontrar nodo no visitado con la menor distancia
+        for (let j = 0; j < this.n; j++) {
+          if (!visited[j] && (u === -1 || dist[j] < dist[u])) {
+            u = j;
+          }
+        }
+
+        if (u === -1 || dist[u] === Infinity) break;
+
+        visited[u] = true;
+
+        for (const edge of this.adj[u]) {
+          const v = edge.node;
+          const w = edge.weight;
+          if (!visited[v] && dist[u] + w < dist[v]) {
+            dist[v] = dist[u] + w; // [cite: 22]
+            prev[v] = u;
+          }
+        }
+      }
+      return { dist, prev }; // Retorna distancias y predecesores [cite: 9]
+    }
+  }
+
+  const graph = new GraphSimple(NUM_NODES);
+  EDGES.forEach((edge) => graph.addEdge(edge[0], edge[1], edge[2]));
+
+  // --- Navegación UI ---
+  function showScreen(screenName) {
+    Object.values(screens).forEach((screen) => (screen.style.display = "none"));
+    screens[screenName].style.display = "flex";
+  }
+
+  showLoginLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    showScreen("login");
+  });
+  showRegisterLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    showScreen("register");
+  });
+
+  // --- Gestión de Usuarios ---
+  function saveUsers() {
+    localStorage.setItem("moviSimpleUsers", JSON.stringify(users)); // Guardado en localStorage en lugar de users.txt [cite: 6]
+  }
+
+  registerButton.addEventListener("click", () => {
+    const name = regNameInput.value.trim();
+    const email = regEmailInput.value.trim();
+    const password = regPasswordInput.value.trim(); // [cite: 5]
+
+    if (!name || !email || !password) {
+      alert("Por favor, complete todos los campos.");
+      return;
+    }
+    if (users.find((user) => user.email === email)) {
+      alert("Un usuario con este correo electrónico ya existe.");
+      return;
+    }
+    // "Hashing" simple de contraseña para demostración; usar bcrypt en producción
+    users.push({ name, email, password: hashed_${password} });
+    saveUsers();
+    alert("¡Registro exitoso! Por favor, inicie sesión."); // CA1
+    showScreen("login");
+    regNameInput.value = "";
+    regEmailInput.value = "";
+    regPasswordInput.value = "";
+  });
