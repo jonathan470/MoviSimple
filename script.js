@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // --- Elementos del DOM ---
+  // Elementos del DOM 
   const screens = {
     register: document.getElementById("registerScreen"),
     login: document.getElementById("loginScreen"),
@@ -41,10 +41,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedOriginNode = null;
   let selectedDestinationNode = null;
   const NUM_NODES = 6;
-  const FARE_PER_SECOND = 0.5; // Tarifa por segundo [cite: 11]
+  const FARE_PER_SECOND = 0.5; // Tarifa por segundo
 
-  // --- Definición del Grafo ---
-  // [u, v, w] donde u y v son índices de nodos, w es el peso en segundos [cite: 7]
+  //  Definición del Grafo 
+  // [u, v, w] donde u y v son índices de nodos, w es el peso en segundos
   const EDGES = [
     [0, 1, 5],
     [0, 2, 7],
@@ -55,25 +55,25 @@ document.addEventListener("DOMContentLoaded", () => {
     [3, 4, 2],
     [3, 5, 9],
     [4, 5, 4],
-  ]; // 9 aristas definidas [cite: 6]
+  ]; // 9 aristas definidas
 
-  // --- Clase GraphSimple --- [cite: 2]
+  // Clase GraphSimple 
   class GraphSimple {
     constructor(n) {
       this.n = n;
       this.adj = Array(n)
         .fill(null)
-        .map(() => []); // Lista de adyacencia [cite: 21]
+        .map(() => []); // Lista de adyacencia 
     }
 
     addEdge(u, v, w) {
       this.adj[u].push({ node: v, weight: w });
-      this.adj[v].push({ node: u, weight: w }); // Conexión bidireccional [cite: 7]
+      this.adj[v].push({ node: u, weight: w }); // Conexión bidireccional 
     }
   }
     dijkstraSimple(source) {
       const dist = Array(this.n).fill(Infinity);
-      const prev = Array(this.n).fill(null); // Para reconstruir predecesores [cite: 9]
+      const prev = Array(this.n).fill(null); // Para reconstruir predecesores
       const visited = Array(this.n).fill(false);
 
       dist[source] = 0;
@@ -95,19 +95,19 @@ document.addEventListener("DOMContentLoaded", () => {
           const v = edge.node;
           const w = edge.weight;
           if (!visited[v] && dist[u] + w < dist[v]) {
-            dist[v] = dist[u] + w; // [cite: 22]
+            dist[v] = dist[u] + w; 
             prev[v] = u;
           }
         }
       }
-      return { dist, prev }; // Retorna distancias y predecesores [cite: 9]
+      return { dist, prev }; // Retorna distancias y predecesores
     }
   }
 
   const graph = new GraphSimple(NUM_NODES);
   EDGES.forEach((edge) => graph.addEdge(edge[0], edge[1], edge[2]));
 
-  // --- Navegación UI ---
+  // Navegación UI
   function showScreen(screenName) {
     Object.values(screens).forEach((screen) => (screen.style.display = "none"));
     screens[screenName].style.display = "flex";
@@ -122,15 +122,15 @@ document.addEventListener("DOMContentLoaded", () => {
     showScreen("register");
   });
 
-  // --- Gestión de Usuarios ---
+  // Gestión de Usuarios
   function saveUsers() {
-    localStorage.setItem("moviSimpleUsers", JSON.stringify(users)); // Guardado en localStorage en lugar de users.txt [cite: 6]
+    localStorage.setItem("moviSimpleUsers", JSON.stringify(users)); // Guardado en localStorage
   }
 
   registerButton.addEventListener("click", () => {
     const name = regNameInput.value.trim();
     const email = regEmailInput.value.trim();
-    const password = regPasswordInput.value.trim(); // [cite: 5]
+    const password = regPasswordInput.value.trim(); 
 
     if (!name || !email || !password) {
       alert("Por favor, complete todos los campos.");
@@ -140,10 +140,9 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Un usuario con este correo electrónico ya existe.");
       return;
     }
-    // "Hashing" simple de contraseña para demostración; usar bcrypt en producción
     users.push({ name, email, password: hashed_${password} });
     saveUsers();
-    alert("¡Registro exitoso! Por favor, inicie sesión."); // CA1
+    alert("¡Registro exitoso! Por favor, inicie sesión."); 
     showScreen("login");
     regNameInput.value = "";
     regEmailInput.value = "";
@@ -151,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   loginButton.addEventListener("click", () => {
     const email = loginEmailInput.value.trim();
-    const password = loginPasswordInput.value.trim(); // [cite: 5]
+    const password = loginPasswordInput.value.trim(); 
 
     const user = users.find(
       (u) => u.email === email && u.password === hashed_${password}
@@ -174,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resetTripInterfaceFull();
   });
 
-  // --- Configuración de Pantalla de Viaje ---
+  // Configuración de Pantalla de Viaje 
   function setupTripScreen() {
     mapContainer.innerHTML = "";
     originSelect.innerHTML = "";
@@ -184,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Nodos del mapa
       const nodeEl = document.createElement("div");
       nodeEl.classList.add("node");
-      nodeEl.textContent = N${i}; // Nodos numerados 0-5 [cite: 8]
+      nodeEl.textContent = N${i}; // Nodos numerados 0-5
       nodeEl.dataset.nodeId = i;
       nodeEl.addEventListener("click", () => handleNodeClick(i, nodeEl));
       mapContainer.appendChild(nodeEl);
@@ -226,7 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
       nodeEl.classList.add("selected-destination");
       destinationSelect.value = nodeId;
     }
-    // CA4: Nodos cambian de color al seleccionarse [cite: 9]
+    // Nodos cambian de color al seleccionarse
   }
 
   function handleNodeSelectionChange(nodeId, type) {
@@ -249,7 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
         el.classList.add("selected-destination");
       }
     });
-    // CA4: Nodos cambian de color al seleccionarse [cite: 9]
+    // Nodos cambian de color al seleccionarse
   }
 
   originSelect.addEventListener("change", (e) =>
