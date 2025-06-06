@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MoviSimple</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="registerScreen" class="screen">
+        <h2>Registrarse</h2>
+        <input type="text" id="regName" placeholder="Nombre" />
+        <input type="email" id="regEmail" placeholder="Correo electrónico" />
+        <input type="password" id="regPassword" placeholder="Contraseña" />
+        <button id="registerButton">Registrarse</button>
+        <p>
+          ¿Ya tienes una cuenta?
+          <a href="#" id="showLoginLink">Iniciar sesión</a>
+        </p>
+      </div>
+
+      <div id="loginScreen" class="screen" style="display: none">
+        <h2>Iniciar Sesión</h2>
+        <input type="email" id="loginEmail" placeholder="Correo electrónico" />
+        <input type="password" id="loginPassword" placeholder="Contraseña" />
+        <button id="loginButton">Iniciar sesión</button>
+        <p>
+          ¿No tienes una cuenta?
+          <a href="#" id="showRegisterLink">Registrarse</a>
+        </p>
+      </div>
+
+      <div id="tripScreen" class="screen" style="display: none">
+        <h2 id="welcomeMessage">¡Bienvenido, Usuario!</h2>
+        <h3>Solicitud de Viaje</h3>
+        <div id="mapContainer"></div>
+        <div class="controls">
+          <label for="originSelect">Origen:</label>
+          <select id="originSelect"></select>
+          <label for="destinationSelect">Destino:</label>
+          <select id="destinationSelect"></select>
+          <button id="calculateRouteButton">Calcular Ruta</button>
+        </div>
+        <div id="tripInfo">
+          <p id="routeText"></p>
+          <p id="timeText"></p>
+          <p id="costText"></p>
+        </div>
+        <div id="animationContainer">
+          <p>Progreso:</p>
+          <div id="progressBar">
+            <div id="progressBarFill"></div>
+          </div>
+          <p id="currentNodeDisplay"></p>
+        </div>
+        <button id="logoutButton">Cerrar Sesión</button>
+        <button id="resetTripButton" style="display: none">Nuevo Viaje</button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
