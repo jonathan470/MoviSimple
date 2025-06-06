@@ -1,25 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Elementos del DOM 
+  // Elementos del DOM
   const screens = {
     register: document.getElementById("registerScreen"),
     login: document.getElementById("loginScreen"),
     trip: document.getElementById("tripScreen"),
   };
 
-  //Registro
+  // Registro
   const regNameInput = document.getElementById("regName");
   const regEmailInput = document.getElementById("regEmail");
   const regPasswordInput = document.getElementById("regPassword");
   const registerButton = document.getElementById("registerButton");
   const showLoginLink = document.getElementById("showLoginLink");
 
-  //Inicio de sesión
+  // Inicio de sesión
   const loginEmailInput = document.getElementById("loginEmail");
   const loginPasswordInput = document.getElementById("loginPassword");
   const loginButton = document.getElementById("loginButton");
   const showRegisterLink = document.getElementById("showRegisterLink");
 
-  //Pantalla de Viaje
+  // Pantalla de Viaje
   const welcomeMessage = document.getElementById("welcomeMessage");
   const mapContainer = document.getElementById("mapContainer");
   const originSelect = document.getElementById("originSelect");
@@ -35,11 +35,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const resetTripButton = document.getElementById("resetTripButton");
   const tripInfoDiv = document.getElementById("tripInfo");
 
+  // Estado de la Aplicación
   let currentUser = null;
   let users = JSON.parse(localStorage.getItem("moviSimpleUsers")) || [];
   let selectedOriginNode = null;
   let selectedDestinationNode = null;
   const NUM_NODES = 6;
+  const FARE_PER_SECOND = 0.5; // Tarifa por segundo
+
+  // Definición del Grafo
+  // [u, v, w] donde u y v son índices de nodos, w es el peso en segundos
   const EDGES = [
     [0, 1, 5],
     [0, 2, 7],
@@ -50,18 +55,23 @@ document.addEventListener("DOMContentLoaded", () => {
     [3, 4, 2],
     [3, 5, 9],
     [4, 5, 4],
+  ]; // 9 aristas definidas
+
+  // Clase GraphSimple
   class GraphSimple {
     constructor(n) {
       this.n = n;
       this.adj = Array(n)
         .fill(null)
+        .map(() => []); // Lista de adyacencia
     }
 
     addEdge(u, v, w) {
       this.adj[u].push({ node: v, weight: w });
+      this.adj[v].push({ node: u, weight: w }); // Conexión bidireccional
     }
-  }
-  // Algoritmo de Dijkstra "simple" [cite: 2, 9]
+
+    // Algoritmo de Dijkstra
     dijkstraSimple(source) {
       const dist = Array(this.n).fill(Infinity);
       const prev = Array(this.n).fill(null); // Para reconstruir predecesores
@@ -94,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return { dist, prev }; // Retorna distancias y predecesores
     }
   }
+
   const graph = new GraphSimple(NUM_NODES);
   EDGES.forEach((edge) => graph.addEdge(edge[0], edge[1], edge[2]));
 
@@ -130,16 +141,19 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Un usuario con este correo electrónico ya existe.");
       return;
     }
+ 
+    users.push({ name, email, password: `hashed_${password}` });
     saveUsers();
-    alert("¡Registro exitoso! Por favor, inicie sesión."); 
+    alert("¡Registro exitoso! Por favor, inicie sesión.");
     showScreen("login");
     regNameInput.value = "";
     regEmailInput.value = "";
     regPasswordInput.value = "";
   });
+
   loginButton.addEventListener("click", () => {
     const email = loginEmailInput.value.trim();
-    const password = loginPasswordInput.value.trim(); 
+    const password = loginPasswordInput.value.trim();
 
     const user = users.find(
       (u) => u.email === email && u.password === `hashed_${password}`
@@ -148,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
       currentUser = user;
       welcomeMessage.textContent = `¡Bienvenido, ${currentUser.name}!`;
       showScreen("trip");
-      setupTripScreen(); // CA2, CA3 (mapa se muestra)
+      setupTripScreen();
       loginEmailInput.value = "";
       loginPasswordInput.value = "";
     } else {
@@ -162,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resetTripInterfaceFull();
   });
 
-  // Configuración de Pantalla de Viaje 
+  // Configuración de Pantalla de Viaje
   function setupTripScreen() {
     mapContainer.innerHTML = "";
     originSelect.innerHTML = "";
@@ -172,6 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Nodos del mapa
       const nodeEl = document.createElement("div");
       nodeEl.classList.add("node");
+      nodeEl.textContent = `N${i}`; // Nodos numerados 0-5
       nodeEl.dataset.nodeId = i;
       nodeEl.addEventListener("click", () => handleNodeClick(i, nodeEl));
       mapContainer.appendChild(nodeEl);
@@ -262,7 +277,8 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedOriginNode = null;
     selectedDestinationNode = null;
   }
-  // --- Cálculo y Visualización de Ruta ---
+
+  // Cálculo y Visualización de Ruta
   calculateRouteButton.addEventListener("click", () => {
     if (selectedOriginNode === null || selectedDestinationNode === null) {
       alert("Por favor, seleccione origen y destino.");
@@ -272,9 +288,8 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("El origen y el destino no pueden ser iguales.");
       return;
     }
-
-    // CA5 (el grafo ya está construido con aristas y pesos) [cite: 7]
-    const { dist, prev } = graph.dijkstraSimple(selectedOriginNode); // CA6 (Dijkstra calcula distancias) [cite: 9]
+    
+    const { dist, prev } = graph.dijkstraSimple(selectedOriginNode); // Dijkstra calcula distancias
 
     const path = [];
     let currentNode = selectedDestinationNode;
@@ -287,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resetTripInterface();
         return;
       }
-    } // Reconstruir la ruta mínima [cite: 10]
+    } // Reconstruir la ruta mínima
 
     if (
       path.length === 0 ||
@@ -303,31 +318,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const totalTime = dist[selectedDestinationNode];
-    const totalCost = totalTime * FARE_PER_SECOND; // [cite: 11]
+    const totalCost = totalTime * FARE_PER_SECOND;
 
     routeText.textContent = `Ruta: ${path.map((n) => `N${n}`).join(" -> ")}`;
-    timeText.textContent = `Tiempo total: ${totalTime} segundos`; // [cite: 12]
-    costText.textContent = `Costo: $${totalCost.toFixed(2)}`; // CA8 (Se calcula y muestra el costo) [cite: 12]
+    timeText.textContent = `Tiempo total: ${totalTime} segundos`; 
+    costText.textContent = `Costo: $${totalCost.toFixed(2)}`; // Se calcula y muestra el costo
 
     tripInfoDiv.style.display = "block";
     animationContainer.style.display = "block";
     calculateRouteButton.style.display = "none";
     resetTripButton.style.display = "block";
 
-    animatePath(path, totalTime); // CA7 (Ruta óptima se dibuja y anima) [cite: 10]
+    animatePath(path, totalTime); // Ruta óptima se dibuja y anima
   });
-  // --- Animación ---
+
+  // Animación
   function animatePath(path, totalTime) {
     let currentPathIndex = 0;
     let accumulatedTime = 0;
     progressBarFill.style.width = "0%";
-    currentNodeDisplay.textContent = Iniciando en N${path[0]};
+    currentNodeDisplay.textContent = `Iniciando en N${path[0]}`;
 
     clearNodeSelectionsVisual();
     const nodeElements = mapContainer.querySelectorAll(".node");
 
     function highlightCurrentNode() {
-      // Parte de "dibujarla sobre el mapa" [cite: 10]
+      // Parte de "dibujarla sobre el mapa"
       nodeElements.forEach((el) => el.classList.remove("path-node"));
       const nodeToHighlight = path[currentPathIndex];
       const elToHighlight = Array.from(nodeElements).find(
@@ -341,7 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
     highlightCurrentNode();
 
     function stepAnimation() {
-      // Barra de progreso que avance entre nodos, respetando el peso en segundos [cite: 10]
+      // Barra de progreso que avance entre nodos, respetando el peso en segundos
       if (currentPathIndex < path.length - 1) {
         const u = path[currentPathIndex];
         const v = path[currentPathIndex + 1];
@@ -351,40 +367,88 @@ document.addEventListener("DOMContentLoaded", () => {
         if (edgeData) {
           edgeWeight = edgeData.weight;
         } else {
-          console.error(Arista no encontrada entre ${u} y ${v});
+          console.error(`Arista no encontrada entre ${u} y ${v}`);
           finalizeAnimation();
           return;
         }
 
         accumulatedTime += edgeWeight;
         const progressPercentage = (accumulatedTime / totalTime) * 100;
-        progressBarFill.style.width = ${progressPercentage}%;
-        currentNodeDisplay.textContent = Viajando a N${v}... (Segmento: ${edgeWeight}s);
+        progressBarFill.style.width = `${progressPercentage}%`;
+        currentNodeDisplay.textContent = `Viajando a N${v}... (Segmento: ${edgeWeight}s)`;
 
         setTimeout(() => {
           currentPathIndex++;
           highlightCurrentNode();
           if (currentPathIndex === path.length - 1) {
-            currentNodeDisplay.textContent = ¡Llegada a N${path[currentPathIndex]}!;
+            currentNodeDisplay.textContent = `¡Llegada a N${path[currentPathIndex]}!`;
             setTimeout(finalizeAnimation, 1000);
           } else {
             stepAnimation();
           }
-        }, edgeWeight * 500); // Escalar tiempo para animación (ej. 500ms por segundo de peso)
+        }, edgeWeight * 500); // Escalar tiempo para animación
       }
     }
 
     if (path.length > 1) {
       setTimeout(stepAnimation, 500);
     } else {
-      currentNodeDisplay.textContent = En N${path[0]};
+      currentNodeDisplay.textContent = `En N${path[0]}`;
       progressBarFill.style.width = "100%";
       finalizeAnimation();
     }
   }
 
   function finalizeAnimation() {
-    currentNodeDisplay.textContent = Viaje Completado! ${timeText.textContent};
-    // El reinicio de la interfaz se maneja con el botón "Nuevo Viaje" [cite: 12]
+    currentNodeDisplay.textContent = `Viaje Completado! ${timeText.textContent}`;
+    // El reinicio de la interfaz se maneja con el botón "Nuevo Viaje"
   }
+
+  // Reinicio de Interfaz
+  function resetTripInterface() {
+    // Interfaz vuelve al estado inicial
+    clearNodeSelections();
+    if (NUM_NODES > 0) {
+      originSelect.value = "0";
+      handleNodeSelectionChange(0, "origin");
+      destinationSelect.value = NUM_NODES > 1 ? "1" : "0";
+      handleNodeSelectionChange(NUM_NODES > 1 ? 1 : 0, "destination");
+    } else {
+      originSelect.innerHTML = "";
+      destinationSelect.innerHTML = "";
+    }
+
+    routeText.textContent = "";
+    timeText.textContent = "";
+    costText.textContent = "";
+    tripInfoDiv.style.display = "none";
+    animationContainer.style.display = "none"; // Ocultar animación
+    progressBarFill.style.width = "0%";
+    currentNodeDisplay.textContent = "";
+
+    calculateRouteButton.style.display = "block";
+    resetTripButton.style.display = "none";
+
+    const nodeElements = mapContainer.querySelectorAll(".node");
+    nodeElements.forEach((el) => {
+      const id = parseInt(el.dataset.nodeId);
+      el.classList.remove(
+        "selected-origin",
+        "selected-destination",
+        "path-node"
+      );
+      if (id === selectedOriginNode) el.classList.add("selected-origin");
+      if (id === selectedDestinationNode)
+        el.classList.add("selected-destination");
+    });
+  }
+
+  function resetTripInterfaceFull() {
+    setupTripScreen();
+  }
+
+  resetTripButton.addEventListener("click", resetTripInterface);
+
+  // Configuración Inicial
+  showScreen("register"); // Iniciar con registro o login
 });
