@@ -6,20 +6,20 @@ document.addEventListener("DOMContentLoaded", () => {
     trip: document.getElementById("tripScreen"),
   };
 
-  // Registro
+  //Registro
   const regNameInput = document.getElementById("regName");
   const regEmailInput = document.getElementById("regEmail");
   const regPasswordInput = document.getElementById("regPassword");
   const registerButton = document.getElementById("registerButton");
   const showLoginLink = document.getElementById("showLoginLink");
 
-  // Inicio de sesión
+  //Inicio de sesión
   const loginEmailInput = document.getElementById("loginEmail");
   const loginPasswordInput = document.getElementById("loginPassword");
   const loginButton = document.getElementById("loginButton");
   const showRegisterLink = document.getElementById("showRegisterLink");
 
-  // Pantalla de Viaje
+  //Pantalla de Viaje
   const welcomeMessage = document.getElementById("welcomeMessage");
   const mapContainer = document.getElementById("mapContainer");
   const originSelect = document.getElementById("originSelect");
@@ -35,15 +35,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const resetTripButton = document.getElementById("resetTripButton");
   const tripInfoDiv = document.getElementById("tripInfo");
 
-  // Estado de la Aplicación
   let currentUser = null;
   let users = JSON.parse(localStorage.getItem("moviSimpleUsers")) || [];
   let selectedOriginNode = null;
   let selectedDestinationNode = null;
   const NUM_NODES = 6;
-  const FARE_PER_SECOND = 0.5; // Tarifa por segundo
-  
-  // [u, v, w] donde u y v son índices de nodos, w es el peso en segundos
   const EDGES = [
     [0, 1, 5],
     [0, 2, 7],
@@ -54,7 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
     [3, 4, 2],
     [3, 5, 9],
     [4, 5, 4],
-
   class GraphSimple {
     constructor(n) {
       this.n = n;
@@ -66,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
       this.adj[u].push({ node: v, weight: w });
     }
   }
+  // Algoritmo de Dijkstra "simple" [cite: 2, 9]
     dijkstraSimple(source) {
       const dist = Array(this.n).fill(Infinity);
       const prev = Array(this.n).fill(null); // Para reconstruir predecesores
@@ -98,7 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return { dist, prev }; // Retorna distancias y predecesores
     }
   }
-
   const graph = new GraphSimple(NUM_NODES);
   EDGES.forEach((edge) => graph.addEdge(edge[0], edge[1], edge[2]));
 
@@ -135,7 +130,6 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Un usuario con este correo electrónico ya existe.");
       return;
     }
-    users.push({ name, email, password: hashed_${password} });
     saveUsers();
     alert("¡Registro exitoso! Por favor, inicie sesión."); 
     showScreen("login");
@@ -148,11 +142,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = loginPasswordInput.value.trim(); 
 
     const user = users.find(
-      (u) => u.email === email && u.password === hashed_${password}
+      (u) => u.email === email && u.password === `hashed_${password}`
     );
     if (user) {
       currentUser = user;
-      welcomeMessage.textContent = ¡Bienvenido, ${currentUser.name}!;
+      welcomeMessage.textContent = `¡Bienvenido, ${currentUser.name}!`;
       showScreen("trip");
       setupTripScreen(); // CA2, CA3 (mapa se muestra)
       loginEmailInput.value = "";
@@ -178,7 +172,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // Nodos del mapa
       const nodeEl = document.createElement("div");
       nodeEl.classList.add("node");
-      nodeEl.textContent = N${i}; // Nodos numerados 0-5
       nodeEl.dataset.nodeId = i;
       nodeEl.addEventListener("click", () => handleNodeClick(i, nodeEl));
       mapContainer.appendChild(nodeEl);
@@ -186,12 +179,12 @@ document.addEventListener("DOMContentLoaded", () => {
       // Opciones de selección
       const optionOrigin = document.createElement("option");
       optionOrigin.value = i;
-      optionOrigin.textContent = Nodo ${i};
+      optionOrigin.textContent = `Nodo ${i}`;
       originSelect.appendChild(optionOrigin);
 
       const optionDest = document.createElement("option");
       optionDest.value = i;
-      optionDest.textContent = Nodo ${i};
+      optionDest.textContent = `Nodo ${i}`;
       destinationSelect.appendChild(optionDest);
     }
     if (NUM_NODES > 0) {
@@ -269,4 +262,59 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedOriginNode = null;
     selectedDestinationNode = null;
   }
+  // --- Cálculo y Visualización de Ruta ---
+  calculateRouteButton.addEventListener("click", () => {
+    if (selectedOriginNode === null || selectedDestinationNode === null) {
+      alert("Por favor, seleccione origen y destino.");
+      return;
+    }
+    if (selectedOriginNode === selectedDestinationNode) {
+      alert("El origen y el destino no pueden ser iguales.");
+      return;
+    }
+
+    // CA5 (el grafo ya está construido con aristas y pesos) [cite: 7]
+    const { dist, prev } = graph.dijkstraSimple(selectedOriginNode); // CA6 (Dijkstra calcula distancias) [cite: 9]
+
+    const path = [];
+    let currentNode = selectedDestinationNode;
+    while (currentNode !== null && currentNode !== undefined) {
+      path.unshift(currentNode);
+      if (currentNode === selectedOriginNode) break;
+      currentNode = prev[currentNode];
+      if (path.length > NUM_NODES) {
+        alert("Error reconstruyendo la ruta o no se encontró la ruta.");
+        resetTripInterface();
+        return;
+      }
+    } // Reconstruir la ruta mínima [cite: 10]
+
+    if (
+      path.length === 0 ||
+      path[0] !== selectedOriginNode ||
+      dist[selectedDestinationNode] === Infinity
+    ) {
+      routeText.textContent = "No se encontró ruta.";
+      timeText.textContent = "";
+      costText.textContent = "";
+      resetTripButton.style.display = "block";
+      calculateRouteButton.style.display = "none";
+      return;
+    }
+
+    const totalTime = dist[selectedDestinationNode];
+    const totalCost = totalTime * FARE_PER_SECOND; // [cite: 11]
+
+    routeText.textContent = `Ruta: ${path.map((n) => `N${n}`).join(" -> ")}`;
+    timeText.textContent = `Tiempo total: ${totalTime} segundos`; // [cite: 12]
+    costText.textContent = `Costo: $${totalCost.toFixed(2)}`; // CA8 (Se calcula y muestra el costo) [cite: 12]
+
+    tripInfoDiv.style.display = "block";
+    animationContainer.style.display = "block";
+    calculateRouteButton.style.display = "none";
+    resetTripButton.style.display = "block";
+
+    animatePath(path, totalTime); // CA7 (Ruta óptima se dibuja y anima) [cite: 10]
   });
+  
+});
