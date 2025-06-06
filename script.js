@@ -35,15 +35,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const resetTripButton = document.getElementById("resetTripButton");
   const tripInfoDiv = document.getElementById("tripInfo");
 
-  // --- Estado de la Aplicación ---
+  // Estado de la Aplicación
   let currentUser = null;
   let users = JSON.parse(localStorage.getItem("moviSimpleUsers")) || [];
   let selectedOriginNode = null;
   let selectedDestinationNode = null;
   const NUM_NODES = 6;
   const FARE_PER_SECOND = 0.5; // Tarifa por segundo
-
-  //  Definición del Grafo 
+  
   // [u, v, w] donde u y v son índices de nodos, w es el peso en segundos
   const EDGES = [
     [0, 1, 5],
@@ -55,20 +54,16 @@ document.addEventListener("DOMContentLoaded", () => {
     [3, 4, 2],
     [3, 5, 9],
     [4, 5, 4],
-  ]; // 9 aristas definidas
 
-  // Clase GraphSimple 
   class GraphSimple {
     constructor(n) {
       this.n = n;
       this.adj = Array(n)
         .fill(null)
-        .map(() => []); // Lista de adyacencia 
     }
 
     addEdge(u, v, w) {
       this.adj[u].push({ node: v, weight: w });
-      this.adj[v].push({ node: u, weight: w }); // Conexión bidireccional 
     }
   }
     dijkstraSimple(source) {
